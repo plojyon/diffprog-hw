@@ -97,15 +97,10 @@ fn numerical_derivative(
 ) -> Vec<Vec<f64>> {
     let h = h.unwrap_or(1e-7);
     let f_x = f(x);
-    let mut jacobian = vec![vec![0.0; x.len()]; x.len()]; // TODO: no need to create here, since it will be overwritten
+    let mut jacobian = vec![vec![0.0; x.len()]; x.len()];
     for i in 0..x.len() {
-        let mut direction = vec![0.0; x.len()];
-        direction[i] = h;
-        let x_h: Vec<f64> = x
-            .iter()
-            .zip(direction.iter())
-            .map(|(&i, h)| i + h)
-            .collect();
+        let mut x_h = x.to_vec();
+        x_h[i] += h;
         jacobian[i] = f(&x_h)
             .iter()
             .zip(f_x.iter())
