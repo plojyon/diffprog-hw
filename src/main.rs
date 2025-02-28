@@ -1,6 +1,4 @@
 fn main() {
-    println!("Hello, world!");
-
     // f(x) = x^3
     // f'(x) = 3x^2
     // f'(6) = 3*6^2 = 108
@@ -29,6 +27,49 @@ fn main() {
     let v = [std::f64::consts::FRAC_PI_4, std::f64::consts::FRAC_PI_3];
     let derivative = numerical_derivative(&f, &v, None);
     let expected: &[&[f64]] = &[&[0.7071, -0.7071], &[-0.8660, -0.5]];
+    test(derivative, expected);
+
+    // f([x, y, z]) = [x^2 + y^2 + z^2, x + y + z]
+    // f'([x, y, z]) = [[2x, 1], [2y, 1], [2z, 1]]
+    // f'([1, 2, 3]) = [[2, 1], [4, 1], [6, 1]]
+    print!("f([x, y, z]) = [x^2 + y^2 + z^2, x + y + z]");
+    let f = |x: &[f64]| {
+        vec![
+            x[0].powi(2) + x[1].powi(2) + x[2].powi(2),
+            x[0] + x[1] + x[2],
+        ]
+    };
+    let v = [1.0, 2.0, 3.0];
+    let derivative = numerical_derivative(&f, &v, None);
+    let expected: &[&[f64]] = &[&[2.0, 1.0], &[4.0, 1.0], &[6.0, 1.0]];
+    test(derivative, expected);
+
+    // f([x, y, z, w]) = [sin(x^2)w + y^2z, xwz^3tan(y), x, 69, -5z]
+    // f'([x, y, z, w])^T = [[2xcos(x^2)w, wz^3tan(y), 1, 0, 0],[2yz, xwz^3sec^2(y), 0, 0, 0],[sin(x^2), 3xwz^2tan(y), 0, 0, -5],[0, xz^3tan(y), 0, 0, 0]]
+    // f'([π/4, π/3, 2, 3])^T = [[3.84391697914949, 41.5692193816531, 1.0, 0, 0],[4.18879020478639, 75.398223686155, 0, 0, 0],[1.09662271123215, 48.9725828343239, 0, 0, -5.0],[0.578468789354558, 10.8827961854053, 0, 0, 0]]
+    print!("f([x, y, z, w]) = [sin(x^2)w + y^2z, xwz^3tan(y), x, 69, -5z]");
+    let f = |x: &[f64]| {
+        vec![
+            x[3] * (x[0].powi(2).sin()) + x[1].powi(2) * x[2],
+            x[0] * x[3] * x[2].powi(3) * x[1].tan(),
+            x[0],
+            69.0,
+            -5.0 * x[2],
+        ]
+    };
+    let v = [
+        std::f64::consts::FRAC_PI_4,
+        std::f64::consts::FRAC_PI_3,
+        2.0,
+        3.0,
+    ];
+    let derivative = numerical_derivative(&f, &v, None);
+    let expected: &[&[f64]] = &[
+        &[3.84391697914949, 41.5692193816531, 1.0, 0.0, 0.0],
+        &[4.18879020478639, 75.398223686155, 0.0, 0.0, 0.0],
+        &[1.09662271123215, 48.9725828343239, 0.0, 0.0, -5.0],
+        &[0.578468789354558, 10.8827961854053, 0.0, 0.0, 0.0],
+    ];
     test(derivative, expected);
 
     println!("All tests passed 🎉");
