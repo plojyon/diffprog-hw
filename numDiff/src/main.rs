@@ -97,7 +97,7 @@ fn numerical_derivative(
 ) -> Vec<Vec<f64>> {
     let h = h.unwrap_or(1e-7);
     let f_x = f(x);
-    let mut jacobian = vec![vec![0.0; x.len()]; x.len()];
+    let mut jacobian = vec![vec![0.0; 0]; x.len()];
     for i in 0..x.len() {
         let mut x_h = x.to_vec();
         x_h[i] += h;
