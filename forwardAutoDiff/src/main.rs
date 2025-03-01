@@ -46,8 +46,7 @@ impl Node {
             return Self { op, args };
         } else {
             let mut node = Self { op, args };
-            node.simplify();
-            node
+            node.simplify()
         }
     }
 
@@ -199,13 +198,13 @@ impl Node {
                 -1.0 * sin(a) * da
             }
             Operation::Log => {
-                // (log_a(b))' = (a'/a * ln(b) - b'/b * ln(a)) / ln(a)^2
+                // (log_a(b))' = (b'/b * ln(a) - a'/a * ln(b)) / ln(a)^2
                 let da = self.args[0].partial_derivative(variable);
                 let db = self.args[1].partial_derivative(variable);
                 let a = *self.args[0].clone();
                 let b = *self.args[1].clone();
-                (da * pow(a.clone(), c(-1.0)) * ln(b.clone())
-                    + -1.0 * db * pow(b.clone(), c(-1.0)) * ln(a.clone()))
+                (db * pow(b.clone(), c(-1.0)) * ln(a.clone())
+                    + -1.0 * da * pow(a.clone(), c(-1.0)) * ln(b.clone()))
                     * pow(ln(a.clone()), c(-2.0))
             }
         }
@@ -217,10 +216,71 @@ fn main() {
     let x = var("x");
     let y = var("y");
     let mut f = 3.0 * x + 4.0 * y + 5.0;
-    let mut df = f.partial_derivative(&"y".to_string());
-    println!("{:?}", f);
-    println!("{:?}", df);
-    println!("{:?}", df.simplify_tree());
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    println!("f = 3x + 4y + 5 = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!();
+
+    // f(x, y) = 3xy + 5
+    let x = var("x");
+    let y = var("y");
+    let mut f = 3.0 * x * y + 5.0;
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    println!("f = 3xy + 5 = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!();
+
+    // f(x, y, z) = 5x + 3y + 4xyz
+    let x = var("x");
+    let y = var("y");
+    let z = var("z");
+    let mut f = 5.0 * x.clone() + 3.0 * y.clone() + 4.0 * x.clone() * y.clone() * z;
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    let df_dz = f.partial_derivative(&"z".to_string());
+    println!("f = 5x + 3y + 4xyz = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!("df/dz = {:?}", df_dz);
+    println!();
+
+    // f(x, y) = 2sin(x) + 3cos(y)
+    let x = var("x");
+    let y = var("y");
+    let mut f = 2.0 * sin(x) + 3.0 * cos(y);
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    println!("f = 2sin(x) + 3cos(y) = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!();
+
+    // f(x, y) = 2log_3(x) + ln(y)
+    let x = var("x");
+    let y = var("y");
+    let mut f = 2.0 * log(c(3.0), x) + ln(y);
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    println!("f = 2log_3(x) + ln(y) = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!();
+
+    // f(x, y) = tan(ln(x/y))
+    let x = var("x");
+    let y = var("y");
+    let mut f =
+        sin(ln(x.clone() * pow(y.clone(), c(-1.0)))) * pow(cos(ln(x * pow(y, c(-1.0)))), c(-1.0));
+    let df_dx = f.partial_derivative(&"x".to_string());
+    let df_dy = f.partial_derivative(&"y".to_string());
+    println!("f = tan(ln(x/y)) = {:?}", f);
+    println!("df/dx = {:?}", df_dx);
+    println!("df/dy = {:?}", df_dy);
+    println!();
 }
 
 ////////////////////
