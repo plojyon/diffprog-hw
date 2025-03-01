@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fmt;
 use std::ops::{Add, Mul};
 
@@ -50,6 +51,7 @@ impl Node {
         }
     }
 
+    #[allow(dead_code)]
     fn simplify_tree(&mut self) -> Node {
         let orig = format!("{:?}", self);
         for arg in &mut self.args {
@@ -176,14 +178,12 @@ impl Node {
                 da * b + a * db
             }
             Operation::Pow => {
-                // (a ^ b)' = b * a ^ b * (b' * ln(a) + b * a' * a^-1)
+                // (a ^ b)' = a ^ b * (b' * ln(a) + b * a' * a^-1)
                 let da = self.args[0].partial_derivative(variable);
                 let db = self.args[1].partial_derivative(variable);
                 let a = *self.args[0].clone();
                 let b = *self.args[1].clone();
-                b.clone()
-                    * pow(a.clone(), b.clone())
-                    * (db * ln(a.clone()) + b * da * pow(a.clone(), c(-1.0)))
+                pow(a.clone(), b.clone()) * (db * ln(a.clone()) + b * da * pow(a.clone(), c(-1.0)))
             }
             Operation::Sin => {
                 // (sin(a))' = cos(a) * a'
@@ -209,8 +209,33 @@ impl Node {
             }
         }
     }
+
+    fn evaluate(&self, variables: &HashMap<String, f64>) -> f64 {
+        let args = self
+            .args
+            .iter()
+            .map(|arg| arg.evaluate(variables))
+            .collect::<Vec<f64>>();
+        match &self.op {
+            Operation::Var(name) => {
+                if let Some(value) = variables.get(name) {
+                    *value
+                } else {
+                    panic!("Variable {} not found", name);
+                }
+            }
+            Operation::Const(value) => *value,
+            Operation::Add => args[0] + args[1],
+            Operation::Mul => args[0] * args[1],
+            Operation::Pow => args[0].powf(args[1]),
+            Operation::Sin => args[0].sin(),
+            Operation::Cos => args[0].cos(),
+            Operation::Log => args[1].log(args[0]),
+        }
+    }
 }
 
+#[allow(unreachable_code)]
 fn main() {
     // f(x, y) = 3x + 4y + 5
     let x = var("x");
@@ -221,6 +246,12 @@ fn main() {
     println!("f = 3x + 4y + 5 = {:?}", f);
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    println!("f(1, 2) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2) = {}", df_dy.evaluate(&x_0));
     println!();
 
     // f(x, y) = 3xy + 5
@@ -232,6 +263,12 @@ fn main() {
     println!("f = 3xy + 5 = {:?}", f);
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    println!("f(1, 2) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2) = {}", df_dy.evaluate(&x_0));
     println!();
 
     // f(x, y, z) = 5x + 3y + 4xyz
@@ -246,6 +283,14 @@ fn main() {
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
     println!("df/dz = {:?}", df_dz);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    x_0.insert("z".to_string(), 3.0);
+    println!("f(1, 2, 3) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2, 3) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2, 3) = {}", df_dy.evaluate(&x_0));
+    println!("df/dz(1, 2, 3) = {}", df_dz.evaluate(&x_0));
     println!();
 
     // f(x, y) = 2sin(x) + 3cos(y)
@@ -257,6 +302,12 @@ fn main() {
     println!("f = 2sin(x) + 3cos(y) = {:?}", f);
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    println!("f(1, 2) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2) = {}", df_dy.evaluate(&x_0));
     println!();
 
     // f(x, y) = 2log_3(x) + ln(y)
@@ -268,6 +319,12 @@ fn main() {
     println!("f = 2log_3(x) + ln(y) = {:?}", f);
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    println!("f(1, 2) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2) = {}", df_dy.evaluate(&x_0));
     println!();
 
     // f(x, y) = tan(ln(x/y))
@@ -280,6 +337,12 @@ fn main() {
     println!("f = tan(ln(x/y)) = {:?}", f);
     println!("df/dx = {:?}", df_dx);
     println!("df/dy = {:?}", df_dy);
+    let mut x_0 = HashMap::new();
+    x_0.insert("x".to_string(), 1.0);
+    x_0.insert("y".to_string(), 2.0);
+    println!("f(1, 2) = {}", f.evaluate(&x_0));
+    println!("df/dx(1, 2) = {}", df_dx.evaluate(&x_0));
+    println!("df/dy(1, 2) = {}", df_dy.evaluate(&x_0));
     println!();
 }
 
