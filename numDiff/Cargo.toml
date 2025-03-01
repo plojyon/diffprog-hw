@@ -1,0 +1,6 @@
+[package]
+name = "numDiff"
+version = "1.0.0"
+authors = ["Yon Ploj <admin@yon.si>"]
+description = "Numerical differentiation"
+edition = "2024"

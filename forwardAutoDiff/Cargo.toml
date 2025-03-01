@@ -1,0 +1,6 @@
+[package]
+name = "forwardAutoDiff"
+version = "0.2.0"
+authors = ["Yon Ploj <admin@yon.si>"]
+description = "Forward mode automatic differentiation"
+edition = "2024"

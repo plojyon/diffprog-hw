@@ -3,9 +3,5 @@
 version = 4
 
 [[package]]
-name = "forwardAutoDiff"
+name = "diffprog-hw"
 version = "0.2.0"
-
-[[package]]
-name = "numDiff"
-version = "1.0.0"

@@ -1,7 +1,14 @@
 # DiffProg homework
 
+1.1. Numerical differentiation (`numDiff`)
+
+1.2. Forward mode automatic differentiation (`forwardAutoDiff`)
+
 ## Usage
 
 ```bash
-cargo run -q
+# 1.1.
+cargo run -q numDiff
+# 1.2.
+cargo run -q forwardAutoDiff
 ```

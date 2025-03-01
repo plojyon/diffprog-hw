@@ -1,6 +1,2 @@
-[package]
-name = "diffprog-hw"
-version = "0.2.0"
-authors = ["Yon Ploj <admin@yon.si>"]
-description = "Homework assignments for Differentiable programming "
-edition = "2024"
+[workspace]
+members = ["numDiff", "forwardAutoDiff"]
