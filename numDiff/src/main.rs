@@ -77,6 +77,7 @@ fn main() {
 
 /// Pretty print test results
 fn test(actual: Vec<Vec<f64>>, expected: &[&[f64]]) {
+    let mut err = 0.0;
     for (a, e) in actual.iter().zip(expected.iter()) {
         for (a, e) in a.iter().zip(e.iter()) {
             // assert!((a - e).abs() < 1e-3);
@@ -85,9 +86,10 @@ fn test(actual: Vec<Vec<f64>>, expected: &[&[f64]]) {
                 println!(" expected: {}, got: {}", e, a);
                 std::process::exit(1);
             }
+            err += (a - e).abs();
         }
     }
-    println!(" OK 👍");
+    println!(" OK 👍 ({})", err);
 }
 
 fn numerical_derivative(
@@ -95,10 +97,10 @@ fn numerical_derivative(
     x: &[f64],
     h: Option<f64>,
 ) -> Vec<Vec<f64>> {
-    let h = h.unwrap_or(1e-7);
     let f_x = f(x);
     let mut jacobian = vec![vec![0.0; 0]; x.len()];
     for i in 0..x.len() {
+        let h = h.unwrap_or(f64::sqrt(f64::EPSILON) * x[i]);
         let mut x_h = x.to_vec();
         x_h[i] += h;
         jacobian[i] = f(&x_h)

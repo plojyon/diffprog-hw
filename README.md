@@ -8,7 +8,7 @@
 
 ```bash
 # 1.1.
-cargo run -q numDiff
+cargo run -q --bin numDiff
 # 1.2.
-cargo run -q forwardAutoDiff
+cargo run -q --bin forwardAutoDiff
 ```
