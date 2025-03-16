@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
-def euler(x0, b, y0, P, Q, n):
+def euler(x0, b, y0, P, Q, n, ylim):
     """Solve Bernoulli with Euler's method."""
     x = torch.tensor([float(x0)], requires_grad=True)
     y = torch.tensor([float(y0)], requires_grad=True)
     h = 0.01
     xs = [x.detach().numpy()]
     ys = [y.detach().numpy()]
-    while x < b:
+    while x < b and y < ylim:
         y = y - h * (P(x) * y - Q(x) * y**n)  # Euler's method
         x = x + h
         xs.append(x.detach().numpy())
@@ -29,12 +29,10 @@ def neural(a, b, x0, y0, P, Q, n):
         )[0]
         return ((dydx + P(x) * y_pred - Q(x) * y_pred**n) ** 2).mean()
 
-    NUM_NEURONS = 200
-    BATCH_SIZE = 1000
+    NUM_NEURONS = 50
+    BATCH_SIZE = 100
     nn = torch.nn.Sequential(
         torch.nn.Linear(1, NUM_NEURONS),
-        torch.nn.LeakyReLU(),
-        torch.nn.Linear(NUM_NEURONS, NUM_NEURONS),
         torch.nn.LeakyReLU(),
         torch.nn.Linear(NUM_NEURONS, NUM_NEURONS),
         torch.nn.LeakyReLU(),
@@ -46,7 +44,7 @@ def neural(a, b, x0, y0, P, Q, n):
         return (x - x0) * nn(x.unsqueeze(-1)).squeeze(-1) + y0
 
     losses = []
-    for _ in tqdm(range(4000)):
+    for _ in tqdm(range(2000)):
         optimizer.zero_grad()
 
         x_batch = torch.linspace(a, b, BATCH_SIZE)
@@ -74,17 +72,23 @@ if __name__ == "__main__":
     # x0 = 1
     # y0 = y_sol(torch.tensor(x0)).item()
     ########################################
-    y_sol = lambda x: (torch.exp(x) * (1 - 3 * x)) ** (-1 / 3)
+    def odd_pow(input, exponent):
+        return input.sign() * input.abs().pow(exponent)
+
+    y_sol = lambda x: odd_pow((torch.exp(x) * (1 - 3 * x)), -1 / 3)
     a = -8
-    b = 0.3
-    P = lambda x: 1 / 3
+    b = 8
+    P = lambda _: 1 / 3
     Q = lambda x: torch.exp(x)
     n = 4
     x0 = -5
+    resolution = 1000
     y0 = y_sol(torch.tensor(x0)).item()
     (analytical_chart,) = ax1.plot(
-        torch.linspace(a, b, 100), y_sol(torch.linspace(a, b, 100))
+        torch.linspace(a, b, resolution), y_sol(torch.linspace(a, b, resolution))
     )
+
+    print(y_sol(torch.tensor(40)))
     ########################################
     # y_sol = lambda x: torch.exp(torch.cos(x)) / (
     #     torch.exp(torch.cos(torch.tensor(1)))
@@ -110,7 +114,8 @@ if __name__ == "__main__":
     # )
     ########################################
 
-    xs, ys = euler(a, b, y_sol(torch.tensor(a)), P, Q, n)
+    xs, ys = euler(a, b, y_sol(torch.tensor(a)), P, Q, n, ylim=10)
+    xs, ys = [], []
     (euler_chart,) = ax1.plot(xs, ys)
 
     model, losses = neural(a, b, x0, y0, P, Q, n)
