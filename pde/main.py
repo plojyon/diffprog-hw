@@ -70,11 +70,12 @@ def neural(X, u0, u1, v0, v1):
             avg_loss += loss.item()
 
         losses.append(avg_loss / (x.shape[0] // BATCH_SIZE))
+        visualize_field(train_X, model(train_X), filename=f"animation/{_}.png")
 
     return model, losses
 
 
-def visualize_field(X, Y):
+def visualize_field(X, Y, filename=None):
     dx = torch.autograd.grad(Y, X, grad_outputs=torch.ones_like(Y), create_graph=True)[
         0
     ][:, 0]
@@ -90,7 +91,12 @@ def visualize_field(X, Y):
         dy.detach().cpu().numpy().reshape(N, N),
         density=2,
     )
-    plt.show()
+
+    if filename is None:
+        plt.show()
+    else:
+        plt.savefig(filename)
+        plt.close()
 
 
 def visualize_gs(X, Y):
